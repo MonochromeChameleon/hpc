@@ -1,4 +1,5 @@
 
+import customwritables.*;
 import java.util.Arrays;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -25,12 +26,12 @@ public class MovieRatings2 {
         //job.setNumReduceTasks(3);
 
         //reducer output
-        job.setOutputKeyClass(Text.class);
+        job.setOutputKeyClass(IntQuartet.class);
         job.setOutputValueClass(Text.class);
 
         //mapper output
         job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(Text.class);
+        job.setMapOutputValueClass(IntIntPair.class);
 
         Path outputPath = new Path(output);
 

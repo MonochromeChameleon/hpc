@@ -19,7 +19,9 @@ public class MovieReducer extends Reducer<IntWritable, Text, IntWritable, TextIn
             tags.add(new Text(tag));
         }
         for (Text tag : tags) {
-            context.write(key, new TextIntPair(tag.toString(), tags.size()));
+            if (tag.toString().equals("zombie")) {
+                context.write(key, new TextIntPair(tag.toString(), tags.size()));
+            }
         }
     }
 }

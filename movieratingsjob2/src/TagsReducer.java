@@ -1,42 +1,55 @@
-import customwritables.*;
+
+import customwritables.IntIntPair;
+import customwritables.IntQuartet;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.*;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-public class TagsReducer extends Reducer<Text, Text, Text, Text> {
-	
-	public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException{
+public class TagsReducer extends Reducer<Text, IntIntPair, IntQuartet, Text> {
+
+    @Override
+    public void reduce(Text key, Iterable<IntIntPair> values, Context context) throws IOException, InterruptedException {
+
+        IntQuartet movieAndTagCountPair = new IntQuartet();
+        Text t = new Text();
+
+        ArrayList<String> checkedMovies = new ArrayList<>();
         
-		Text moviePair = new Text();
-
-		ArrayList<String> checkedMovies = new ArrayList<String>();
-		String m1 = null;
-		String m2 = null;
-
-		for (Text movie1 : values) {
-			m1 = movie1.toString();
-			for (Text movie2 : values) {
-				m2 = movie2.toString();
-				if (m1.equals(m2)){
-					//if two movies are the same do nothing
-				if (checkedMovies.contains(m2)){
-					//if this pair has already been processed do nothing	
-				}
-				} else {
-					String pair = m1 + "-" + m2;
-					moviePair.set(pair);
-					context.write(moviePair, key);
-				}
-			}
-			checkedMovies.add(m1);
-		}
-
-	}
+        Iterator<IntIntPair> valuesIterator = values.iterator();
+        List<IntIntPair> valueListClone1 = new ArrayList<>();
+        List<IntIntPair> valueListClone2 = new ArrayList<>();
+        
+        while (valuesIterator.hasNext()) {
+            // This is ugly, but the nested iterators fail unless we create two distinct (i.e. not object-equal)
+            // iterators before we handle our nested loop.
+            IntIntPair value = valuesIterator.next();
+            valueListClone1.add(new IntIntPair(value.getFirst().get(), value.getSecond().get()));
+            valueListClone2.add(new IntIntPair(value.getFirst().get(), value.getSecond().get()));
+        }
+        
+        Iterator<IntIntPair> movie1Iterator = valueListClone1.iterator();
+        while (movie1Iterator.hasNext()) {
+            IntIntPair movie1 = movie1Iterator.next();
+            
+            // Ensure that we don't handle both sides of a pair (i.e. 1 & 2 vs. 2 & 1)
+            // We do this before the inner loop to avoid pairing movies with themselves
+            checkedMovies.add(movie1.getFirst().toString());
+            
+            Iterator<IntIntPair> movie2Iterator = valueListClone2.iterator();
+            while (movie2Iterator.hasNext()) {
+                IntIntPair movie2 = movie2Iterator.next();
+                
+                // Skip any movie ids that are already handled.
+                if (checkedMovies.contains(movie2.getFirst().toString())) {
+                    continue;
+                }
+                
+                movieAndTagCountPair.set(movie1.getFirst(), movie1.getSecond(), movie2.getFirst(), movie2.getSecond());
+                context.write(movieAndTagCountPair, key);
+            }
+        }
+    }
 }
-
