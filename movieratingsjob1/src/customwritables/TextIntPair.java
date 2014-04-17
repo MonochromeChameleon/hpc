@@ -45,7 +45,7 @@ public class TextIntPair implements WritableComparable<TextIntPair> {
 	
 	@Override
 	public String toString() {
-		return "["+ text + "," + iw + "]";
+		return text + "\t" + iw;
 	}
 
 	@Override

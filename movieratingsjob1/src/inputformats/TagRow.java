@@ -33,11 +33,6 @@ public class TagRow implements WritableComparable<TagRow> {
         this.movieId = movieId;
     }
     
-    public void set(String tag, int movieId) {
-        this.tag = new Text(tag);
-        this.movieId = new IntWritable(movieId);
-    }
-
     public Text getTag() {
         return tag;
     }
