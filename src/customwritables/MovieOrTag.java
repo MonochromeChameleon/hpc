@@ -8,70 +8,74 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
 /**
- * This is used for receiving the input data from the provided tags.dat file
+ * This is used for receiving the input data from the provided .dat files - either tags.dat or movies.dat
  */
-public class TagRow implements WritableComparable<TagRow> {
+public class MovieOrTag implements WritableComparable<MovieOrTag> {
 
     private Text tag;
     private IntWritable movieId;
+    private Text name;
     
-    public TagRow() {
-        set(new Text(), new IntWritable());
+    public MovieOrTag() {
+        set(new Text(), new IntWritable(), new Text());
     }
     
-    public TagRow(String tag, int movieId) {
-        set(new Text(tag), new IntWritable(movieId));
+    public MovieOrTag(String tag, int movieId, String name) {
+        set(new Text(tag), new IntWritable(movieId), new Text(name));
     }
     
-    public TagRow(Text tag, IntWritable movieId) {
-        set(tag, movieId);
+    public MovieOrTag(Text tag, IntWritable movieId, Text name) {
+        set(tag, movieId, name);
     }
 
-    public void set(Text tag, IntWritable movieId) {
+    public final void set(Text tag, IntWritable movieId, Text name) {
         this.tag = tag;
         this.movieId = movieId;
+        this.name = name;
     }
     
     public Text getTag() {
         return tag;
     }
 
-    public void setTag(Text tag) {
-        this.tag = tag;
-    }
-
     public IntWritable getMovieId() {
         return movieId;
     }
-
-    public void setMovieId(IntWritable movieId) {
-        this.movieId = movieId;
+    
+    public Text getName() {
+        return name;
     }
 
     @Override
     public void write(DataOutput out) throws IOException {
         tag.write(out);
         movieId.write(out);
+        name.write(out);
     }
 
     @Override
     public void readFields(DataInput in) throws IOException {
         tag.readFields(in);
         movieId.readFields(in);
+        name.readFields(in);
     }
 
     @Override
     public String toString() {
-        return "[" + tag + "\t" + movieId + "]";
+        return tag + "\t" + movieId + "\t" + name;
     }
 
     @Override
-    public int compareTo(TagRow t) {
+    public int compareTo(MovieOrTag t) {
         int cmp = tag.compareTo(t.getTag());
         if (cmp != 0) {
             return cmp;
         }
-        return movieId.compareTo(t.getMovieId());
+        cmp = movieId.compareTo(t.getMovieId());
+        if (cmp != 0) {
+            return cmp;
+        }
+        return name.compareTo(t.getName());
     }
 
     @Override
@@ -80,15 +84,16 @@ public class TagRow implements WritableComparable<TagRow> {
         int result = 1;
         result = prime * result + ((tag == null) ? 0 : tag.hashCode());
         result = prime * result + ((movieId == null) ? 0 : movieId.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
 
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof TagRow) {
-            TagRow t = (TagRow) obj;
-            return tag.equals(t.getTag()) && movieId.equals(t.getMovieId());
+        if (obj instanceof MovieOrTag) {
+            MovieOrTag t = (MovieOrTag) obj;
+            return tag.equals(t.getTag()) && movieId.equals(t.getMovieId()) && name.equals(t.getName());
         }
         return false;
     }

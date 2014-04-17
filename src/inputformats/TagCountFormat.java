@@ -1,5 +1,6 @@
 package inputformats;
 
+import customwritables.Movie;
 import customwritables.TagMovie;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
@@ -45,8 +46,7 @@ public class TagCountFormat extends FileInputFormat<NullWritable, TagMovie> {
         
         // internal fields
         private Text tag = new Text();
-        private IntWritable movieId = new IntWritable();
-        private IntWritable numberOfTags = new IntWritable();
+        private Movie movie = new Movie();
 
         @Override
         public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException {
@@ -100,11 +100,11 @@ public class TagCountFormat extends FileInputFormat<NullWritable, TagMovie> {
                 }
 
                 // fields:
-                // tag    movieId    numberOfTags
+                // tag    movieId    numberOfTags    name
                 String[] fields = line.toString().split("\t");
 
                 // data must be correctly formed
-                if (fields == null || fields.length != 3) {
+                if (fields == null || fields.length != 4) {
                     break;
                 }
 
@@ -112,12 +112,10 @@ public class TagCountFormat extends FileInputFormat<NullWritable, TagMovie> {
                 
                 // parse movieId to an integer
                 Integer parsedId = Integer.parseInt(fields[1]);
-                movieId.set(parsedId);
-                
                 Integer parsedNumberOfTags = Integer.parseInt(fields[2]);
-                numberOfTags.set(parsedNumberOfTags);
+                movie.set(parsedId, parsedNumberOfTags, fields[3]);
                 
-                value.set(tag, movieId, numberOfTags);
+                value.set(tag, movie);
 
                 pos += newSize;
                 if (newSize < maxLineLength) {

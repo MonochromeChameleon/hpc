@@ -15,108 +15,62 @@ import org.apache.hadoop.io.WritableComparable;
  */
 public class MoviePair implements WritableComparable<MoviePair> {
 
-    private IntWritable movie1Id;
-    private IntWritable movie1NumberOfTags;
-    private IntWritable movie2Id;
-    private IntWritable movie2NumberOfTags;
+    private Movie movie1;
+    private Movie movie2;
     
     public MoviePair() {
-        set(new IntWritable(), new IntWritable(), new IntWritable(), new IntWritable());
+        set(new Movie(), new Movie());
     }
     
-    public MoviePair(String tag, int movie1Id, int movie1NumberOfTags, int movie2Id, int movie2NumberOfTags) {
-        set(new IntWritable(movie1Id), new IntWritable(movie1NumberOfTags), new IntWritable(movie2Id), new IntWritable(movie2NumberOfTags));
+    public MoviePair(Movie movie1, Movie movie2) {
+        set(movie1, movie2);
+    }
+
+    public void set(Movie movie1, Movie movie2) {
+        this.movie1 = movie1;
+        this.movie2 = movie2;
     }
     
-    public MoviePair(Text tag, IntWritable movie1Id, IntWritable movie1NumberOfTags, IntWritable movie2Id, IntWritable movie2NumberOfTags) {
-        set(movie1Id, movie1NumberOfTags, movie2Id, movie2NumberOfTags);
+    public Movie getMovie1() {
+        return movie1;
     }
 
-    public void set(IntWritable movie1Id, IntWritable movie1NumberOfTags, IntWritable movie2Id, IntWritable movie2NumberOfTags) {
-        this.movie1Id = movie1Id;
-        this.movie1NumberOfTags = movie1NumberOfTags;
-        this.movie2Id = movie2Id;
-        this.movie2NumberOfTags = movie2NumberOfTags;
-    }
-    
-    public IntWritable getMovie1Id() {
-        return movie1Id;
-    }
-
-    public void setMovie1Id(IntWritable movie1Id) {
-        this.movie1Id = movie1Id;
-    }
-
-    public IntWritable getMovie1NumberOfTags() {
-        return movie1NumberOfTags;
-    }
-
-    public void setMovie1NumberOfTags(IntWritable movie1NumberOfTags) {
-        this.movie1NumberOfTags = movie1NumberOfTags;
-    }
-
-    public IntWritable getMovie2Id() {
-        return movie2Id;
-    }
-
-    public void setMovie2Id(IntWritable movie2Id) {
-        this.movie2Id = movie2Id;
-    }
-
-    public IntWritable getMovie2NumberOfTags() {
-        return movie2NumberOfTags;
-    }
-
-    public void setMovie2NumberOfTags(IntWritable movie2NumberOfTags) {
-        this.movie2NumberOfTags = movie2NumberOfTags;
+    public Movie getMovie2() {
+        return movie2;
     }
 
     @Override
     public void write(DataOutput out) throws IOException {
-        movie1Id.write(out);
-        movie1NumberOfTags.write(out);
-        movie2Id.write(out);
-        movie2NumberOfTags.write(out);
+        movie1.write(out);
+        movie2.write(out);
     }
 
     @Override
     public void readFields(DataInput in) throws IOException {
-        movie1Id.readFields(in);
-        movie1NumberOfTags.readFields(in);
-        movie2Id.readFields(in);
-        movie2NumberOfTags.readFields(in);
+        movie1.readFields(in);
+        movie2.readFields(in);
     }
 
     @Override
     public String toString() {
-        return movie1Id + "\t" + movie1NumberOfTags + "\t" + movie2Id + "\t" + movie2NumberOfTags;
+        return movie1 + "\t" + movie2;
     }
 
     @Override
     public int compareTo(MoviePair t) {
-        int cmp = movie1Id.compareTo(t.getMovie1Id());
+        int cmp = movie1.compareTo(t.getMovie1());
         if (cmp != 0) {
             return cmp;
         }
-        cmp = movie1NumberOfTags.compareTo(t.getMovie1NumberOfTags());
-        if (cmp != 0) {
-            return cmp;
-        }
-        cmp = movie2Id.compareTo(t.getMovie2Id());
-        if (cmp != 0) {
-            return cmp;
-        }
-        return movie2NumberOfTags.compareTo(t.getMovie2NumberOfTags());
+        return movie2.compareTo(t.getMovie2());
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((movie1Id == null) ? 0 : movie1Id.hashCode());
-        result = prime * result + ((movie1NumberOfTags == null) ? 0 : movie1NumberOfTags.hashCode());
-        result = prime * result + ((movie2Id == null) ? 0 : movie2Id.hashCode());
-        result = prime * result + ((movie2NumberOfTags == null) ? 0 : movie2NumberOfTags.hashCode());
+        result = prime * result + ((movie1 == null) ? 0 : movie1.hashCode());
+        result = prime * result + ((movie2 == null) ? 0 : movie2.hashCode());
 
         return result;
     }
@@ -125,10 +79,8 @@ public class MoviePair implements WritableComparable<MoviePair> {
     public boolean equals(Object obj) {
         if (obj instanceof MoviePair) {
             MoviePair t = (MoviePair) obj;
-            return movie1Id.equals(t.getMovie1Id()) && 
-                    movie1NumberOfTags.equals(t.getMovie1NumberOfTags()) && 
-                    movie2Id.equals(t.getMovie2Id()) && 
-                    movie2NumberOfTags.equals(t.getMovie2NumberOfTags());
+            return movie1.equals(t.getMovie1()) && 
+                    movie2.equals(t.getMovie2());
         }
         return false;
     }

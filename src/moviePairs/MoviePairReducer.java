@@ -28,8 +28,8 @@ public class MoviePairReducer extends Reducer<Text, TagMovie, MoviePair, NullWri
             // This is ugly, but the nested iterators fail unless we create two distinct (i.e. not object-equal)
             // iterators before we handle our nested loop.
             TagMovie value = valuesIterator.next();
-            valueListClone1.add(new TagMovie(key.toString(), value.getMovieId().get(), value.getNumberOfTags().get()));
-            valueListClone2.add(new TagMovie(key.toString(), value.getMovieId().get(), value.getNumberOfTags().get()));
+            valueListClone1.add(new TagMovie(key.toString(), value.getMovie().getMovieId().get(), value.getMovie().getNumberOfTags().get(), value.getMovie().getName().toString()));
+            valueListClone2.add(new TagMovie(key.toString(), value.getMovie().getMovieId().get(), value.getMovie().getNumberOfTags().get(), value.getMovie().getName().toString()));
         }
         
         Iterator<TagMovie> movie1Iterator = valueListClone1.iterator();
@@ -38,18 +38,18 @@ public class MoviePairReducer extends Reducer<Text, TagMovie, MoviePair, NullWri
             
             // Ensure that we don't handle both sides of a pair (i.e. 1 & 2 vs. 2 & 1)
             // We do this before the inner loop to avoid pairing movies with themselves
-            checkedMovies.add(movie1.getMovieId().toString());
+            checkedMovies.add(movie1.getMovie().getMovieId().toString());
             
             Iterator<TagMovie> movie2Iterator = valueListClone2.iterator();
             while (movie2Iterator.hasNext()) {
                 TagMovie movie2 = movie2Iterator.next();
                 
                 // Skip any movie ids that are already handled.
-                if (checkedMovies.contains(movie2.getMovieId().toString())) {
+                if (checkedMovies.contains(movie2.getMovie().getMovieId().toString())) {
                     continue;
                 }
                 
-                movieAndTagCountPair.set(movie1.getMovieId(), movie1.getNumberOfTags(), movie2.getMovieId(), movie2.getNumberOfTags());
+                movieAndTagCountPair.set(movie1.getMovie(), movie2.getMovie());
                 context.write(movieAndTagCountPair, NullWritable.get());
             }
         }

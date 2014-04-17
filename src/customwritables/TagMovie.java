@@ -3,7 +3,6 @@ package customwritables;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
@@ -16,68 +15,48 @@ import org.apache.hadoop.io.WritableComparable;
 public class TagMovie implements WritableComparable<TagMovie> {
 
     private Text tag;
-    private IntWritable movieId;
-    private IntWritable numberOfTags;
+    private Movie movie;
     
     public TagMovie() {
-        set(new Text(), new IntWritable(), new IntWritable());
+        set(new Text(), new Movie());
     }
     
-    public TagMovie(String tag, int movieId, int numberOfTags) {
-        set(new Text(tag), new IntWritable(movieId), new IntWritable(numberOfTags));
+    public TagMovie(String tag, int movieId, int numberOfTags, String name) {
+        set(new Text(tag), new Movie(movieId, numberOfTags, name));
     }
     
-    public TagMovie(Text tag, IntWritable movieId, IntWritable numberOfTags) {
-        set(tag, movieId, numberOfTags);
+    public TagMovie(Text tag, Movie movie) {
+        set(tag, movie);
     }
 
-    public void set(Text tag, IntWritable movieId, IntWritable numberOfTags) {
+    public final void set(Text tag, Movie movie) {
         this.tag = tag;
-        this.movieId = movieId;
-        this.numberOfTags = numberOfTags;
+        this.movie = movie;
     }
     
     public Text getTag() {
         return tag;
     }
 
-    public void setTag(Text tag) {
-        this.tag = tag;
-    }
-
-    public IntWritable getMovieId() {
-        return movieId;
-    }
-
-    public void setMovieId(IntWritable movieId) {
-        this.movieId = movieId;
-    }
-
-    public IntWritable getNumberOfTags() {
-        return numberOfTags;
-    }
-
-    public void setNumberOfTags(IntWritable numberOfTags) {
-        this.numberOfTags = numberOfTags;
+    public Movie getMovie() {
+        return movie;
     }
 
     @Override
     public void write(DataOutput out) throws IOException {
         tag.write(out);
-        movieId.write(out);
-        numberOfTags.write(out);
+        movie.write(out);
     }
 
     @Override
     public void readFields(DataInput in) throws IOException {
         tag.readFields(in);
-        movieId.readFields(in);
-        numberOfTags.readFields(in);
+        movie.readFields(in);
     }
 
     @Override
     public String toString() {
-        return tag + "\t" + movieId + "\t" + numberOfTags;
+        return tag + "\t" + movie;
     }
 
     @Override
@@ -86,11 +65,7 @@ public class TagMovie implements WritableComparable<TagMovie> {
         if (cmp != 0) {
             return cmp;
         }
-        cmp = movieId.compareTo(t.getMovieId());
-        if (cmp != 0) {
-            return cmp;
-        }
-        return numberOfTags.compareTo(t.getNumberOfTags());
+        return movie.compareTo(t.getMovie());
     }
 
     @Override
@@ -98,8 +73,7 @@ public class TagMovie implements WritableComparable<TagMovie> {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((tag == null) ? 0 : tag.hashCode());
-        result = prime * result + ((movieId == null) ? 0 : movieId.hashCode());
-        result = prime * result + ((numberOfTags == null) ? 0 : numberOfTags.hashCode());
+        result = prime * result + ((movie == null) ? 0 : movie.hashCode());
 
         return result;
     }
@@ -108,7 +82,7 @@ public class TagMovie implements WritableComparable<TagMovie> {
     public boolean equals(Object obj) {
         if (obj instanceof TagMovie) {
             TagMovie t = (TagMovie) obj;
-            return tag.equals(t.getTag()) && movieId.equals(t.getMovieId()) && numberOfTags.equals(t.getNumberOfTags());
+            return tag.equals(t.getTag()) && movie.equals(t.getMovie());
         }
         return false;
     }

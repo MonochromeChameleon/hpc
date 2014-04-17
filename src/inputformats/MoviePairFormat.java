@@ -1,12 +1,12 @@
 package inputformats;
 
+import customwritables.Movie;
 import customwritables.MoviePair;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
@@ -27,13 +27,13 @@ public class MoviePairFormat extends FileInputFormat<NullWritable, MoviePair> {
 
     @Override
     public RecordReader<NullWritable, MoviePair> createRecordReader(InputSplit is, TaskAttemptContext tac) throws IOException, InterruptedException {
-        return new TagCountRowReader();
+        return new MoviePairRowReader();
     }
 
     /**
      * Modified LineRecordReader
      */
-    public class TagCountRowReader extends RecordReader<NullWritable, MoviePair> {
+    public class MoviePairRowReader extends RecordReader<NullWritable, MoviePair> {
 
         private CompressionCodecFactory compressionCodecs = null;
         private long start;
@@ -45,11 +45,8 @@ public class MoviePairFormat extends FileInputFormat<NullWritable, MoviePair> {
         private Text line = new Text();
         
         // internal fields
-        private Text tag = new Text();
-        private IntWritable movie1Id = new IntWritable();
-        private IntWritable movie1NumberOfTags = new IntWritable();
-        private IntWritable movie2Id = new IntWritable();
-        private IntWritable movie2NumberOfTags = new IntWritable();
+        private Movie movie1 = new Movie();
+        private Movie movie2 = new Movie();
 
         @Override
         public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException {
@@ -103,28 +100,26 @@ public class MoviePairFormat extends FileInputFormat<NullWritable, MoviePair> {
                 }
 
                 // fields:
-                // movie1Id    movie1NumberOfTags    movie2Id    movie2NumberOfTags
+                // movie1Id    movie1NumberOfTags    movie1Name    movie2Id    movie2NumberOfTags    movie2Name
                 String[] fields = line.toString().split("\t");
 
                 // data must be correctly formed
-                if (fields == null || fields.length != 4) {
+                if (fields == null || fields.length != 6) {
                     break;
                 }
 
                 // parse movieId to an integer
                 Integer parsedId1 = Integer.parseInt(fields[0]);
-                movie1Id.set(parsedId1);
-                
                 Integer parsedTags1 = Integer.parseInt(fields[1]);
-                movie1NumberOfTags.set(parsedTags1);
+                String name1 = fields[2];
+                movie1.set(parsedId1, parsedTags1, name1);
                 
-                Integer parsedId2 = Integer.parseInt(fields[2]);
-                movie2Id.set(parsedId2);
-                
-                Integer parsedTags2 = Integer.parseInt(fields[3]);
-                movie2NumberOfTags.set(parsedTags2);
+                Integer parsedId2 = Integer.parseInt(fields[3]);
+                Integer parsedTags2 = Integer.parseInt(fields[4]);
+                String name2 = fields[5];
+                movie2.set(parsedId2, parsedTags2, name2);
 
-                value.set(movie1Id, movie1NumberOfTags, movie2Id, movie2NumberOfTags);
+                value.set(movie1, movie2);
 
                 pos += newSize;
                 if (newSize < maxLineLength) {

@@ -22,17 +22,17 @@ import org.apache.hadoop.util.LineReader;
 /**
  * This parses the tags.dat file into a TagRow custom writable
  */
-public class TagFileInputFormat extends FileInputFormat<NullWritable, MovieOrTag> {
+public class MovieFileInputFormat extends FileInputFormat<NullWritable, MovieOrTag> {
 
     @Override
     public RecordReader<NullWritable, MovieOrTag> createRecordReader(InputSplit is, TaskAttemptContext tac) throws IOException, InterruptedException {
-        return new TagRowReader();
+        return new MovieRowReader();
     }
 
     /**
      * Modified LineRecordReader
      */
-    public class TagRowReader extends RecordReader<NullWritable, MovieOrTag> {
+    public class MovieRowReader extends RecordReader<NullWritable, MovieOrTag> {
 
         private CompressionCodecFactory compressionCodecs = null;
         private long start;
@@ -100,23 +100,33 @@ public class TagFileInputFormat extends FileInputFormat<NullWritable, MovieOrTag
                 }
 
                 // fields:
-                // userId::movieId::tag::timestamp
+                // movieId::name (year)::genre|genre|genre...
                 String[] fields = line.toString().split("::");
 
                 // data must be correctly formed
-                if (fields == null || fields.length != 4) {
+                if (fields == null || fields.length != 3) {
                     break;
                 }
 
                 // parse movieId to an integer
-                Integer parsedId = Integer.parseInt(fields[1]);
+                Integer parsedId = Integer.parseInt(fields[0]);
                 movieId.set(parsedId);
 
-                String parsedTag = fields[2].toLowerCase();
-                parsedTag.replaceAll("[\\p{ASCII}]|\\d", "");
-                tag.set(parsedTag);
+                String parsedName = fields[1].toLowerCase();
+                parsedName.replaceAll("[\\p{ASCII}]|\\d", "");
                 
-                value.set(tag, movieId, name); // name is always undefined when we read this, but it allows us to join later
+                // Remove the year from the end of the movie name
+                int yearIndex = parsedName.lastIndexOf("(");
+                String nameWithoutYear = parsedName.substring(0, yearIndex - 1);
+                
+                // Fix e.g. "Firm, the" because nobody will search for that...
+                if (nameWithoutYear.endsWith(", the")) {
+                    nameWithoutYear = "the " + nameWithoutYear.substring(0, nameWithoutYear.lastIndexOf(","));
+                }
+                
+                name.set(nameWithoutYear);
+                
+                value.set(tag, movieId, name); // tag is always empty but we join later
 
                 pos += newSize;
                 if (newSize < maxLineLength) {

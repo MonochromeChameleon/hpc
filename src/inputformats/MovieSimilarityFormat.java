@@ -1,11 +1,13 @@
 package inputformats;
 
-import customwritables.MovieOrTag;
+import customwritables.Movie;
+import customwritables.MovieSimilarity;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -20,19 +22,20 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
 /**
- * This parses the tags.dat file into a TagRow custom writable
+ * This parses the output from the second job, reading each row (movie 1 id, movie 1 tag count, movie 2 id, movie 2 tag count)
+ * into a MoviePair custom writable
  */
-public class TagFileInputFormat extends FileInputFormat<NullWritable, MovieOrTag> {
+public class MovieSimilarityFormat extends FileInputFormat<NullWritable, MovieSimilarity> {
 
     @Override
-    public RecordReader<NullWritable, MovieOrTag> createRecordReader(InputSplit is, TaskAttemptContext tac) throws IOException, InterruptedException {
-        return new TagRowReader();
+    public RecordReader<NullWritable, MovieSimilarity> createRecordReader(InputSplit is, TaskAttemptContext tac) throws IOException, InterruptedException {
+        return new MovieSimilarityReader();
     }
 
     /**
      * Modified LineRecordReader
      */
-    public class TagRowReader extends RecordReader<NullWritable, MovieOrTag> {
+    public class MovieSimilarityReader extends RecordReader<NullWritable, MovieSimilarity> {
 
         private CompressionCodecFactory compressionCodecs = null;
         private long start;
@@ -40,13 +43,13 @@ public class TagFileInputFormat extends FileInputFormat<NullWritable, MovieOrTag
         private long end;
         private LineReader in;
         private int maxLineLength;
-        private MovieOrTag value = null;
+        private MovieSimilarity value = null;
         private Text line = new Text();
         
         // internal fields
-        private Text tag = new Text();
-        private IntWritable movieId = new IntWritable();
-        private Text name = new Text();
+        private Movie movie1 = new Movie();
+        private Movie movie2 = new Movie();
+        private FloatWritable similarity = new FloatWritable();
 
         @Override
         public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException {
@@ -84,7 +87,7 @@ public class TagFileInputFormat extends FileInputFormat<NullWritable, MovieOrTag
         @Override
         public boolean nextKeyValue() throws IOException {
             if (value == null) {
-                value = new MovieOrTag();
+                value = new MovieSimilarity();
             }
 
             //key.set(pos);
@@ -100,23 +103,29 @@ public class TagFileInputFormat extends FileInputFormat<NullWritable, MovieOrTag
                 }
 
                 // fields:
-                // userId::movieId::tag::timestamp
-                String[] fields = line.toString().split("::");
+                // movie1Id    numberOfTags    name    movie2Id    numberOfTags    name    similarity
+                String[] fields = line.toString().split("\t");
 
                 // data must be correctly formed
-                if (fields == null || fields.length != 4) {
+                if (fields == null || fields.length != 7) {
                     break;
                 }
 
                 // parse movieId to an integer
-                Integer parsedId = Integer.parseInt(fields[1]);
-                movieId.set(parsedId);
-
-                String parsedTag = fields[2].toLowerCase();
-                parsedTag.replaceAll("[\\p{ASCII}]|\\d", "");
-                tag.set(parsedTag);
+                Integer parsedId1 = Integer.parseInt(fields[0]);
+                Integer parsedTags1 = Integer.parseInt(fields[1]);
+                String name1 = fields[2];
+                movie1.set(parsedId1, parsedTags1, name1);
                 
-                value.set(tag, movieId, name); // name is always undefined when we read this, but it allows us to join later
+                Integer parsedId2 = Integer.parseInt(fields[3]);
+                Integer parsedTags2 = Integer.parseInt(fields[4]);
+                String name2 = fields[5];
+                movie2.set(parsedId2, parsedTags2, name2);
+                
+                Float parsedSimilarity = Float.parseFloat(fields[6]);
+                similarity.set(parsedSimilarity);
+                
+                value.set(movie1, movie2, similarity);
 
                 pos += newSize;
                 if (newSize < maxLineLength) {
@@ -138,7 +147,7 @@ public class TagFileInputFormat extends FileInputFormat<NullWritable, MovieOrTag
         }
 
         @Override
-        public MovieOrTag getCurrentValue() {
+        public MovieSimilarity getCurrentValue() {
             return value;
         }
 

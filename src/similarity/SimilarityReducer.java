@@ -1,16 +1,17 @@
 package similarity;
 
-import customwritables.IntIntPair;
 import customwritables.MoviePair;
+import customwritables.MovieSimilarity;
 import java.io.IOException;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 
-public class SimilarityReducer extends Reducer<MoviePair, IntWritable, IntIntPair, FloatWritable> {
+public class SimilarityReducer extends Reducer<MoviePair, IntWritable, MovieSimilarity, NullWritable> {
     
-    private IntIntPair movies = new IntIntPair();
-    private FloatWritable result = new FloatWritable();
+    private FloatWritable similarity = new FloatWritable();
+    private MovieSimilarity result = new MovieSimilarity();
     
     @Override
     public void reduce(MoviePair key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
@@ -20,15 +21,15 @@ public class SimilarityReducer extends Reducer<MoviePair, IntWritable, IntIntPai
             numberOfSharedTags += value.get();
         }
         
-        int movie1NumberOfTags = key.getMovie1NumberOfTags().get();
-        int movie2NumberOfTags = key.getMovie2NumberOfTags().get();
-        
-        movies.set(key.getMovie1Id(), key.getMovie2Id());
+        int movie1NumberOfTags = key.getMovie1().getNumberOfTags().get();
+        int movie2NumberOfTags = key.getMovie2().getNumberOfTags().get();
         
         float jaccard = numberOfSharedTags / ((movie1NumberOfTags + movie2NumberOfTags) - numberOfSharedTags);
+
         if (jaccard >= 0.1) {
-            result.set(jaccard);
-            context.write(movies, result);
+            similarity.set(jaccard);
+            result.set(key.getMovie1(), key.getMovie2(), similarity);
+            context.write(result, NullWritable.get());
         }
     }
 }
