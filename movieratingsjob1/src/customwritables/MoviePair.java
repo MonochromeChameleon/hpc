@@ -1,4 +1,4 @@
-package inputformats;
+package customwritables;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -8,25 +8,27 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
 /**
- *
- * @author hwg30
+ * This is the ouput writable for the second job, representing a pair of related movies and the number of tags associated
+ * with each of them.
+ * It is also the input writable for the third job, where we count the number of rows in order to determine the number of
+ * shared tags for each pair.
  */
-public class MoviePairRow implements WritableComparable<MoviePairRow> {
+public class MoviePair implements WritableComparable<MoviePair> {
 
     private IntWritable movie1Id;
     private IntWritable movie1NumberOfTags;
     private IntWritable movie2Id;
     private IntWritable movie2NumberOfTags;
     
-    public MoviePairRow() {
+    public MoviePair() {
         set(new IntWritable(), new IntWritable(), new IntWritable(), new IntWritable());
     }
     
-    public MoviePairRow(String tag, int movie1Id, int movie1NumberOfTags, int movie2Id, int movie2NumberOfTags) {
+    public MoviePair(String tag, int movie1Id, int movie1NumberOfTags, int movie2Id, int movie2NumberOfTags) {
         set(new IntWritable(movie1Id), new IntWritable(movie1NumberOfTags), new IntWritable(movie2Id), new IntWritable(movie2NumberOfTags));
     }
     
-    public MoviePairRow(Text tag, IntWritable movie1Id, IntWritable movie1NumberOfTags, IntWritable movie2Id, IntWritable movie2NumberOfTags) {
+    public MoviePair(Text tag, IntWritable movie1Id, IntWritable movie1NumberOfTags, IntWritable movie2Id, IntWritable movie2NumberOfTags) {
         set(movie1Id, movie1NumberOfTags, movie2Id, movie2NumberOfTags);
     }
 
@@ -91,7 +93,7 @@ public class MoviePairRow implements WritableComparable<MoviePairRow> {
     }
 
     @Override
-    public int compareTo(MoviePairRow t) {
+    public int compareTo(MoviePair t) {
         int cmp = movie1Id.compareTo(t.getMovie1Id());
         if (cmp != 0) {
             return cmp;
@@ -121,8 +123,8 @@ public class MoviePairRow implements WritableComparable<MoviePairRow> {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof MoviePairRow) {
-            MoviePairRow t = (MoviePairRow) obj;
+        if (obj instanceof MoviePair) {
+            MoviePair t = (MoviePair) obj;
             return movie1Id.equals(t.getMovie1Id()) && 
                     movie1NumberOfTags.equals(t.getMovie1NumberOfTags()) && 
                     movie2Id.equals(t.getMovie2Id()) && 

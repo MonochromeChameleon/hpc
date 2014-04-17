@@ -1,5 +1,6 @@
 package inputformats;
 
+import customwritables.MoviePair;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -19,20 +20,20 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
 /**
- *
- * @author hwg30
+ * This parses the output from the second job, reading each row (movie 1 id, movie 1 tag count, movie 2 id, movie 2 tag count)
+ * into a MoviePair custom writable
  */
-public class MoviePairFormat extends FileInputFormat<NullWritable, MoviePairRow> {
+public class MoviePairFormat extends FileInputFormat<NullWritable, MoviePair> {
 
     @Override
-    public RecordReader<NullWritable, MoviePairRow> createRecordReader(InputSplit is, TaskAttemptContext tac) throws IOException, InterruptedException {
+    public RecordReader<NullWritable, MoviePair> createRecordReader(InputSplit is, TaskAttemptContext tac) throws IOException, InterruptedException {
         return new TagCountRowReader();
     }
 
     /**
      * Modified LineRecordReader
      */
-    public class TagCountRowReader extends RecordReader<NullWritable, MoviePairRow> {
+    public class TagCountRowReader extends RecordReader<NullWritable, MoviePair> {
 
         private CompressionCodecFactory compressionCodecs = null;
         private long start;
@@ -40,7 +41,7 @@ public class MoviePairFormat extends FileInputFormat<NullWritable, MoviePairRow>
         private long end;
         private LineReader in;
         private int maxLineLength;
-        private MoviePairRow value = null;
+        private MoviePair value = null;
         private Text line = new Text();
         
         // internal fields
@@ -86,7 +87,7 @@ public class MoviePairFormat extends FileInputFormat<NullWritable, MoviePairRow>
         @Override
         public boolean nextKeyValue() throws IOException {
             if (value == null) {
-                value = new MoviePairRow();
+                value = new MoviePair();
             }
 
             //key.set(pos);
@@ -145,7 +146,7 @@ public class MoviePairFormat extends FileInputFormat<NullWritable, MoviePairRow>
         }
 
         @Override
-        public MoviePairRow getCurrentValue() {
+        public MoviePair getCurrentValue() {
             return value;
         }
 

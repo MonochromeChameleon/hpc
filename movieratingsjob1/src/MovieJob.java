@@ -1,12 +1,10 @@
 
-import customwritables.IntIntPair;
-import customwritables.IntQuartet;
 import inputformats.MoviePairFormat;
-import inputformats.MoviePairRow;
+import customwritables.MoviePair;
 import inputformats.TagCountFormat;
-import inputformats.TagCountRow;
+import customwritables.TagMovie;
 import inputformats.TagFileInputFormat;
-import inputformats.TagRow;
+import customwritables.TagRow;
 import moviePairs.MoviePairMapper;
 import moviePairs.MoviePairReducer;
 import tagCount.TagCountReducer;
@@ -38,14 +36,14 @@ public enum MovieJob {
             MoviePairReducer.class,
             TagCountFormat.class,
             Text.class,
-            TagCountRow.class,
+            TagMovie.class,
             "pairs.out"),
     
     Similarity(SimilarityMapper.class,
             SimilarityCombiner.class,
             SimilarityReducer.class,
             MoviePairFormat.class,
-            MoviePairRow.class,
+            MoviePair.class,
             IntWritable.class,
             null);
     

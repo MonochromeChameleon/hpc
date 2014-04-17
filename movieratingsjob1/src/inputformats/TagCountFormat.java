@@ -1,5 +1,6 @@
 package inputformats;
 
+import customwritables.TagMovie;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -19,20 +20,19 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
 /**
- *
- * @author hwg30
+ * This parses the output from the first job, reading each row (tag, movie id, movie tag count) into a TagMovie custom writable
  */
-public class TagCountFormat extends FileInputFormat<NullWritable, TagCountRow> {
+public class TagCountFormat extends FileInputFormat<NullWritable, TagMovie> {
 
     @Override
-    public RecordReader<NullWritable, TagCountRow> createRecordReader(InputSplit is, TaskAttemptContext tac) throws IOException, InterruptedException {
+    public RecordReader<NullWritable, TagMovie> createRecordReader(InputSplit is, TaskAttemptContext tac) throws IOException, InterruptedException {
         return new TagCountRowReader();
     }
 
     /**
      * Modified LineRecordReader
      */
-    public class TagCountRowReader extends RecordReader<NullWritable, TagCountRow> {
+    public class TagCountRowReader extends RecordReader<NullWritable, TagMovie> {
 
         private CompressionCodecFactory compressionCodecs = null;
         private long start;
@@ -40,7 +40,7 @@ public class TagCountFormat extends FileInputFormat<NullWritable, TagCountRow> {
         private long end;
         private LineReader in;
         private int maxLineLength;
-        private TagCountRow value = null;
+        private TagMovie value = null;
         private Text line = new Text();
         
         // internal fields
@@ -84,7 +84,7 @@ public class TagCountFormat extends FileInputFormat<NullWritable, TagCountRow> {
         @Override
         public boolean nextKeyValue() throws IOException {
             if (value == null) {
-                value = new TagCountRow();
+                value = new TagMovie();
             }
 
             //key.set(pos);
@@ -139,7 +139,7 @@ public class TagCountFormat extends FileInputFormat<NullWritable, TagCountRow> {
         }
 
         @Override
-        public TagCountRow getCurrentValue() {
+        public TagMovie getCurrentValue() {
             return value;
         }
 

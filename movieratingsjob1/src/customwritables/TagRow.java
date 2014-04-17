@@ -1,4 +1,4 @@
-package inputformats;
+package customwritables;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -8,31 +8,28 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
 /**
- *
- * @author hwg30
+ * This is used for receiving the input data from the provided tags.dat file
  */
-public class TagCountRow implements WritableComparable<TagCountRow> {
+public class TagRow implements WritableComparable<TagRow> {
 
     private Text tag;
     private IntWritable movieId;
-    private IntWritable numberOfTags;
     
-    public TagCountRow() {
-        set(new Text(), new IntWritable(), new IntWritable());
+    public TagRow() {
+        set(new Text(), new IntWritable());
     }
     
-    public TagCountRow(String tag, int movieId, int numberOfTags) {
-        set(new Text(tag), new IntWritable(movieId), new IntWritable(numberOfTags));
+    public TagRow(String tag, int movieId) {
+        set(new Text(tag), new IntWritable(movieId));
     }
     
-    public TagCountRow(Text tag, IntWritable movieId, IntWritable numberOfTags) {
-        set(tag, movieId, numberOfTags);
+    public TagRow(Text tag, IntWritable movieId) {
+        set(tag, movieId);
     }
 
-    public void set(Text tag, IntWritable movieId, IntWritable numberOfTags) {
+    public void set(Text tag, IntWritable movieId) {
         this.tag = tag;
         this.movieId = movieId;
-        this.numberOfTags = numberOfTags;
     }
     
     public Text getTag() {
@@ -51,44 +48,30 @@ public class TagCountRow implements WritableComparable<TagCountRow> {
         this.movieId = movieId;
     }
 
-    public IntWritable getNumberOfTags() {
-        return numberOfTags;
-    }
-
-    public void setNumberOfTags(IntWritable numberOfTags) {
-        this.numberOfTags = numberOfTags;
-    }
-
     @Override
     public void write(DataOutput out) throws IOException {
         tag.write(out);
         movieId.write(out);
-        numberOfTags.write(out);
     }
 
     @Override
     public void readFields(DataInput in) throws IOException {
         tag.readFields(in);
         movieId.readFields(in);
-        numberOfTags.readFields(in);
     }
 
     @Override
     public String toString() {
-        return tag + "\t" + movieId + "\t" + numberOfTags;
+        return "[" + tag + "\t" + movieId + "]";
     }
 
     @Override
-    public int compareTo(TagCountRow t) {
+    public int compareTo(TagRow t) {
         int cmp = tag.compareTo(t.getTag());
         if (cmp != 0) {
             return cmp;
         }
-        cmp = movieId.compareTo(t.getMovieId());
-        if (cmp != 0) {
-            return cmp;
-        }
-        return numberOfTags.compareTo(t.getNumberOfTags());
+        return movieId.compareTo(t.getMovieId());
     }
 
     @Override
@@ -97,16 +80,15 @@ public class TagCountRow implements WritableComparable<TagCountRow> {
         int result = 1;
         result = prime * result + ((tag == null) ? 0 : tag.hashCode());
         result = prime * result + ((movieId == null) ? 0 : movieId.hashCode());
-        result = prime * result + ((numberOfTags == null) ? 0 : numberOfTags.hashCode());
 
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof TagCountRow) {
-            TagCountRow t = (TagCountRow) obj;
-            return tag.equals(t.getTag()) && movieId.equals(t.getMovieId()) && numberOfTags.equals(t.getNumberOfTags());
+        if (obj instanceof TagRow) {
+            TagRow t = (TagRow) obj;
+            return tag.equals(t.getTag()) && movieId.equals(t.getMovieId());
         }
         return false;
     }

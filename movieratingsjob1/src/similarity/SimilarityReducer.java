@@ -1,19 +1,19 @@
 package similarity;
 
 import customwritables.IntIntPair;
-import inputformats.MoviePairRow;
+import customwritables.MoviePair;
 import java.io.IOException;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 
-public class SimilarityReducer extends Reducer<MoviePairRow, IntWritable, IntIntPair, FloatWritable> {
+public class SimilarityReducer extends Reducer<MoviePair, IntWritable, IntIntPair, FloatWritable> {
     
     private IntIntPair movies = new IntIntPair();
     private FloatWritable result = new FloatWritable();
     
     @Override
-    public void reduce(MoviePairRow key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+    public void reduce(MoviePair key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
         // Make this a float (even though it's an integer value) so that we don't get integer division later on.
         float numberOfSharedTags = 0; 
         for (IntWritable value : values) {

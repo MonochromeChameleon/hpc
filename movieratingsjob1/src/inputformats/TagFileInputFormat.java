@@ -1,5 +1,6 @@
 package inputformats;
 
+import customwritables.TagRow;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -19,8 +20,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
 /**
- *
- * @author hwg30
+ * This parses the tags.dat file into a TagRow custom writable
  */
 public class TagFileInputFormat extends FileInputFormat<NullWritable, TagRow> {
 

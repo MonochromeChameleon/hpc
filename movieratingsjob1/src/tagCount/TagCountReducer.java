@@ -1,8 +1,8 @@
 package tagCount;
 
 
-import inputformats.TagCountRow;
-import inputformats.TagRow;
+import customwritables.TagMovie;
+import customwritables.TagRow;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.*;
@@ -11,9 +11,9 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 
-public class TagCountReducer extends Reducer<IntWritable, TagRow, TagCountRow, NullWritable> {
+public class TagCountReducer extends Reducer<IntWritable, TagRow, TagMovie, NullWritable> {
     
-    TagCountRow output = new TagCountRow();
+    TagMovie output = new TagMovie();
     IntWritable numberOfTags = new IntWritable();
 
     @Override
