@@ -4,7 +4,7 @@ import inputformats.MoviePairFormat;
 import customwritables.MoviePair;
 import inputformats.TagCountFormat;
 import customwritables.TagMovie;
-import inputformats.TagFileInputFormat;
+import inputformats.DataFileInputFormat;
 import customwritables.MovieOrTag;
 import customwritables.MovieSimilarity;
 import inputformats.MovieSimilarityFormat;
@@ -31,7 +31,7 @@ public enum MovieJob {
     TagCount(TagCountMapper.class,
             null,
             TagCountReducer.class,
-            TagFileInputFormat.class,
+            DataFileInputFormat.class,
             IntWritable.class,
             MovieOrTag.class,
             "tags.out"),

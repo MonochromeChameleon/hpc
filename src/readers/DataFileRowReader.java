@@ -5,7 +5,7 @@ import customwritables.MovieOrTag;
 /**
  * Modified LineRecordReader
  */
-public class TagRowReader extends RowReaderBase<MovieOrTag> {
+public class DataFileRowReader extends RowReaderBase<MovieOrTag> {
 
     @Override
     protected MovieOrTag initValue() {
