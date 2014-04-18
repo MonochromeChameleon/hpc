@@ -1,78 +1,17 @@
 package readers;
 
-import customwritables.Movie;
 import customwritables.MovieSimilarity;
-import java.io.IOException;
-import org.apache.hadoop.io.FloatWritable;
 
 /**
  * Modified LineRecordReader
  */
 public class MovieSimilarityRowReader extends RowReaderBase<MovieSimilarity> {
 
-    // internal fields
-    private Movie movie1 = new Movie();
-    private Movie movie2 = new Movie();
-    private FloatWritable similarity = new FloatWritable();
-
     @Override
-    public boolean nextKeyValue() throws IOException {
+    protected MovieSimilarity initValue() {
         if (value == null) {
             value = new MovieSimilarity();
         }
-
-        //key.set(pos);
-        int newSize = 0;
-
-        while (pos < end) {
-            newSize = in.readLine(line, maxLineLength, Math.max(
-                    (int) Math.min(Integer.MAX_VALUE, end - pos),
-                    maxLineLength));
-            if (newSize == 0) {
-                break;
-            }
-
-            // fields:
-            // movie1Id    numberOfTags    name    movie2Id    numberOfTags    name    similarity
-            String[] fields = line.toString().split("\t");
-
-            // data must be correctly formed
-            if (fields == null || fields.length != 7) {
-                break;
-            }
-
-            // parse movieId to an integer
-            Integer parsedId1 = Integer.parseInt(fields[0]);
-            Integer parsedTags1 = Integer.parseInt(fields[1]);
-            String name1 = fields[2];
-            movie1.set(parsedId1, parsedTags1, name1);
-
-            Integer parsedId2 = Integer.parseInt(fields[3]);
-            Integer parsedTags2 = Integer.parseInt(fields[4]);
-            String name2 = fields[5];
-            movie2.set(parsedId2, parsedTags2, name2);
-
-            Float parsedSimilarity = Float.parseFloat(fields[6]);
-            similarity.set(parsedSimilarity);
-
-            value.set(movie1, movie2, similarity);
-
-            pos += newSize;
-            if (newSize < maxLineLength) {
-                break;
-            }
-
-        }
-        if (newSize == 0) {
-            value = null;
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    @Override
-    public MovieSimilarity getCurrentValue() {
         return value;
     }
 }

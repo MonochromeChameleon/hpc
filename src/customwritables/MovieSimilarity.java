@@ -4,7 +4,7 @@ import java.io.*;
 
 import org.apache.hadoop.io.*;
 
-public class MovieSimilarity implements WritableComparable<MovieSimilarity> {
+public class MovieSimilarity implements MovieWritableBase<MovieSimilarity> {
 
     private Movie movie1;
     private Movie movie2;
@@ -18,6 +18,34 @@ public class MovieSimilarity implements WritableComparable<MovieSimilarity> {
         this.movie1 = movie1;
         this.movie2 = movie2;
         this.similarity = similarity;
+    }
+    
+    @Override
+    public MovieSimilarity parseInputLine(Text line) {
+        // fields:
+        // movie1Id    numberOfTags    name    movie2Id    numberOfTags    name    similarity
+        String[] fields = line.toString().split("\t");
+
+        // data must be correctly formed
+        if (fields == null || fields.length != 7) {
+            return null;
+        }
+
+        // parse movieId to an integer
+        Integer parsedId1 = Integer.parseInt(fields[0]);
+        Integer parsedTags1 = Integer.parseInt(fields[1]);
+        String name1 = fields[2];
+        movie1.set(parsedId1, parsedTags1, name1);
+
+        Integer parsedId2 = Integer.parseInt(fields[3]);
+        Integer parsedTags2 = Integer.parseInt(fields[4]);
+        String name2 = fields[5];
+        movie2.set(parsedId2, parsedTags2, name2);
+
+        Float parsedSimilarity = Float.parseFloat(fields[6]);
+        similarity.set(parsedSimilarity);
+
+        return this;
     }
 
     public Movie getMovie1() {

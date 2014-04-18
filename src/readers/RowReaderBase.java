@@ -1,6 +1,6 @@
 package readers;
 
-import customwritables.MovieOrTag;
+import customwritables.MovieWritableBase;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -20,7 +20,7 @@ import org.apache.hadoop.util.LineReader;
  *
  * @author Hugh
  */
-public abstract class RowReaderBase<V> extends RecordReader<NullWritable, V> {
+public abstract class RowReaderBase<V extends MovieWritableBase> extends RecordReader<NullWritable, V> {
 
     protected CompressionCodecFactory compressionCodecs = null;
     protected long start;
@@ -30,6 +30,8 @@ public abstract class RowReaderBase<V> extends RecordReader<NullWritable, V> {
     protected int maxLineLength;
     protected V value = null;
     protected Text line = new Text();
+    
+    protected abstract V initValue();
 
     @Override
     public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException {
@@ -63,6 +65,39 @@ public abstract class RowReaderBase<V> extends RecordReader<NullWritable, V> {
         }
         this.pos = start;
     }
+    
+    @Override
+    public boolean nextKeyValue() throws IOException {
+        initValue();
+
+        //key.set(pos);
+        int newSize = 0;
+
+        while (pos < end) {
+            newSize = in.readLine(line, maxLineLength, Math.max(
+                    (int) Math.min(Integer.MAX_VALUE, end - pos),
+                    maxLineLength));
+            if (newSize == 0) {
+                break;
+            }
+            
+            if (value.parseInputLine(line) == null) {
+                break;
+            }
+
+            pos += newSize;
+            if (newSize < maxLineLength) {
+                break;
+            }
+
+        }
+        if (newSize == 0) {
+            value = null;
+            return false;
+        } else {
+            return true;
+        }
+    }
 
     @Override
     public NullWritable getCurrentKey() {
@@ -70,7 +105,9 @@ public abstract class RowReaderBase<V> extends RecordReader<NullWritable, V> {
     }
 
     @Override
-    public abstract V getCurrentValue();
+    public V getCurrentValue() {
+        return value;
+    }
 
     /**
      * Get the progress within the split

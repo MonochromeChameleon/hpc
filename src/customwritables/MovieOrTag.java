@@ -5,25 +5,25 @@ import java.io.DataOutput;
 import java.io.IOException;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparable;
 
 /**
- * This is used for receiving the input data from the provided .dat files - either tags.dat or movies.dat
+ * This is used for receiving the input data from the provided .dat files -
+ * either tags.dat or movies.dat
  */
-public class MovieOrTag implements WritableComparable<MovieOrTag> {
+public class MovieOrTag implements MovieWritableBase<MovieOrTag> {
 
     private Text tag;
     private IntWritable movieId;
     private Text name;
-    
+
     public MovieOrTag() {
         set(new Text(), new IntWritable(), new Text());
     }
-    
+
     public MovieOrTag(String tag, int movieId, String name) {
         set(new Text(tag), new IntWritable(movieId), new Text(name));
     }
-    
+
     public MovieOrTag(Text tag, IntWritable movieId, Text name) {
         set(tag, movieId, name);
     }
@@ -33,7 +33,55 @@ public class MovieOrTag implements WritableComparable<MovieOrTag> {
         this.movieId = movieId;
         this.name = name;
     }
-    
+
+    @Override
+    public MovieOrTag parseInputLine(Text line) {
+        String[] fields = line.toString().split("::");
+
+        // data must be correctly formed
+        if (fields == null) {
+            return null;
+        }
+
+        // fields:
+        // userId::movieId::tag::timestamp
+        if (fields.length == 4) {
+            // parse movieId to an integer
+            Integer parsedId = Integer.parseInt(fields[1]);
+            movieId.set(parsedId);
+
+            String parsedTag = fields[2].toLowerCase();
+            parsedTag.replaceAll("[\\p{ASCII}]|\\d", "");
+            tag.set(parsedTag);
+
+            return this;
+        }
+
+        if (fields.length == 3) {
+            // parse movieId to an integer
+            Integer parsedId = Integer.parseInt(fields[0]);
+            movieId.set(parsedId);
+
+            String parsedName = fields[1].toLowerCase();
+            parsedName.replaceAll("[\\p{ASCII}]|\\d", "");
+
+            // Remove the year from the end of the movie name
+            int yearIndex = parsedName.lastIndexOf("(");
+            String nameWithoutYear = parsedName.substring(0, yearIndex - 1);
+
+            // Fix e.g. "Firm, the" because nobody will search for that...
+            if (nameWithoutYear.endsWith(", the")) {
+                nameWithoutYear = "the " + nameWithoutYear.substring(0, nameWithoutYear.lastIndexOf(","));
+            }
+
+            name.set(nameWithoutYear);
+            
+            return this;
+        }
+        
+        return null;
+    }
+
     public Text getTag() {
         return tag;
     }
@@ -41,7 +89,7 @@ public class MovieOrTag implements WritableComparable<MovieOrTag> {
     public IntWritable getMovieId() {
         return movieId;
     }
-    
+
     public Text getName() {
         return name;
     }

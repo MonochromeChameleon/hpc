@@ -4,7 +4,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparable;
 
 /**
  * This is the output custom writable for the first job, storing a instance of a tag and a movie id, as well as the total
@@ -12,7 +11,7 @@ import org.apache.hadoop.io.WritableComparable;
  * It is also the input writable for the second job, wherein we pair up movies that share a tag, while keeping track of
  * the total number of tags associated with each of those movies.
  */
-public class TagMovie implements WritableComparable<TagMovie> {
+public class TagMovie implements MovieWritableBase<TagMovie> {
 
     private Text tag;
     private Movie movie;
@@ -32,6 +31,27 @@ public class TagMovie implements WritableComparable<TagMovie> {
     public final void set(Text tag, Movie movie) {
         this.tag = tag;
         this.movie = movie;
+    }
+    
+    @Override
+    public TagMovie parseInputLine(Text line) {
+        // fields:
+        // tag    movieId    numberOfTags    name
+        String[] fields = line.toString().split("\t");
+
+        // data must be correctly formed
+        if (fields == null || fields.length != 4) {
+            return null;
+        }
+
+        tag.set(fields[0]);
+
+        // parse movieId to an integer
+        Integer parsedId = Integer.parseInt(fields[1]);
+        Integer parsedNumberOfTags = Integer.parseInt(fields[2]);
+        movie.set(parsedId, parsedNumberOfTags, fields[3]);
+
+        return this;
     }
     
     public Text getTag() {
