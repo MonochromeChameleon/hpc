@@ -21,9 +21,10 @@ public class RecommendationReducer extends Reducer<Movie, MovieSimilarity, Text,
         
         sb.append("Recommendations based on ");
         sb.append(key.getName());
-        sb.append(":\n\t");
+        sb.append(":\n");
         
         for (MovieSimilarity value : values) {
+            sb.append("\t");
             if (value.getMovie1().equals(key)) {
                 sb.append(value.getMovie2().getName());
             } else {
