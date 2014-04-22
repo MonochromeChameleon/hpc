@@ -8,8 +8,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
 /**
- *
- * @author hwg30
+ * This takes a list of MovieSimilarity custom writables for each movie which matches the search term, and writes a 
+ * formatted recommendation output.
  */
 public class RecommendationReducer extends Reducer<Movie, MovieSimilarity, Text, NullWritable> {
     Text txt = new Text();    
@@ -17,17 +17,24 @@ public class RecommendationReducer extends Reducer<Movie, MovieSimilarity, Text,
     @Override
     public void reduce(Movie key, Iterable<MovieSimilarity> values, Context context) throws IOException, InterruptedException {
         
-        txt.set("Recommendations based on " + key.getName());
-        context.write(txt, null);
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("Recommendations based on ");
+        sb.append(key.getName());
+        sb.append(":\n\t");
         
         for (MovieSimilarity value : values) {
             if (value.getMovie1().equals(key)) {
-                txt.set("\t" + value.getMovie2().getName() + "\t(" + value.getSimilarity() + ")");
-                context.write(txt, null);
+                sb.append(value.getMovie2().getName());
             } else {
-                txt.set("\t" + value.getMovie1().getName() + "\t(" + value.getSimilarity() + ")");
-                context.write(txt, null);
+                sb.append(value.getMovie1().getName());
             }
+            
+            sb.append("\t(");
+            sb.append(value.getSimilarity());
+            sb.append(")\n");
         }
+        txt.set(sb.toString());
+        context.write(txt, null);
     }
 }

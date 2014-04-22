@@ -11,10 +11,8 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 /**
- *
- * @author Hugh
- * @param <K>
- * @param <V>
+ * Generic abstraction of the FileInputFormat class, extended by our various InputFormat classes for reading files into
+ * our jobs.
  */
 public abstract class InputFormatBase<K,V> extends FileInputFormat<K, V> {
 

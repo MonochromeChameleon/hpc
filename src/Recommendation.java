@@ -5,6 +5,9 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
+/**
+ * Main class for collecting recommendations based on a provided movie search string.
+ */
 public class Recommendation {
 
     public static void main(String[] args) throws Exception {

@@ -8,10 +8,8 @@ import inputformats.DataFileInputFormat;
 import customwritables.MovieOrTag;
 import customwritables.MovieSimilarity;
 import inputformats.MovieSimilarityFormat;
-import moviePairs.MoviePairMapper;
 import moviePairs.MoviePairReducer;
 import tagCount.TagCountReducer;
-import tagCount.TagCountMapper;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -21,14 +19,17 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import recommendation.MovieFilter;
 import recommendation.RecommendationReducer;
 import similarity.SimilarityCombiner;
-import similarity.SimilarityMapper;
 import similarity.SimilarityReducer;
 
+/**
+ * Config enum defining the various mapper/combiner/reducer/input format/output format classes for each of the jobs that
+ * comprise the overall movie recommendations program.
+ */
 public enum MovieJob {
 
     // Define available jobs as enum values, each with associated Mapper/Combiner/Reducer 
     // classes, and output key/value classes
-    TagCount(TagCountMapper.class,
+    TagCount(null,
             null,
             TagCountReducer.class,
             DataFileInputFormat.class,
@@ -36,7 +37,7 @@ public enum MovieJob {
             MovieOrTag.class,
             "tags.out"),
 
-    MoviePairs(MoviePairMapper.class,
+    MoviePairs(null,
             null,
             MoviePairReducer.class,
             TagCountFormat.class,
@@ -44,7 +45,7 @@ public enum MovieJob {
             TagMovie.class,
             "pairs.out"),
     
-    Similarity(SimilarityMapper.class,
+    Similarity(null,
             SimilarityCombiner.class,
             SimilarityReducer.class,
             MoviePairFormat.class,
@@ -108,15 +109,21 @@ public enum MovieJob {
 
     public void configureJob(Job job) {
         // Configure properties for the job to run.
-        job.setMapperClass(mapperClass);
+        if (mapperClass != null) {
+            job.setMapperClass(mapperClass);
+        }
         if (combinerClass != null) {
             job.setCombinerClass(combinerClass);
         }
-        if (reducerClass != null) job.setReducerClass(reducerClass);
+        if (reducerClass != null) {
+            job.setReducerClass(reducerClass);
+        }
 
         job.setInputFormatClass(inputFormatClass);
 
         job.setMapOutputKeyClass(mapOutputKeyClass);
         job.setMapOutputValueClass(mapOutputValueClass);
+        
+        job.setNumReduceTasks(3);
     }
 }

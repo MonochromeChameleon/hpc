@@ -7,8 +7,7 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 
 /**
- * This is used for receiving the input data from the provided .dat files -
- * either tags.dat or movies.dat
+ * Custom writable used for receiving the input data from the provided .dat files - either tags.dat or movies.dat
  */
 public class MovieOrTag implements MovieWritableBase<MovieOrTag> {
 
@@ -43,9 +42,11 @@ public class MovieOrTag implements MovieWritableBase<MovieOrTag> {
             return null;
         }
 
-        // fields:
-        // userId::movieId::tag::timestamp
+        // This means we are parsing a tag entry
         if (fields.length == 4) {
+            // fields:
+            // userId::movieId::tag::timestamp
+
             // parse movieId to an integer
             Integer parsedId = Integer.parseInt(fields[1]);
             movieId.set(parsedId);
@@ -57,7 +58,11 @@ public class MovieOrTag implements MovieWritableBase<MovieOrTag> {
             return this;
         }
 
+        // This means we are parsing a movie entry
         if (fields.length == 3) {
+            // fields:
+            // movieId::name::genres
+
             // parse movieId to an integer
             Integer parsedId = Integer.parseInt(fields[0]);
             movieId.set(parsedId);

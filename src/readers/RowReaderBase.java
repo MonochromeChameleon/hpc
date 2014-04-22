@@ -6,7 +6,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
@@ -17,10 +16,10 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
 /**
- *
- * @author Hugh
+ * Generic abstraction of the LineRecordReader, extended by the various concrete implementations to allow us to 
+ * construct our custom writables directly on import, rather than having to build them inside a mapper class.
  */
-public abstract class RowReaderBase<V extends MovieWritableBase> extends RecordReader<NullWritable, V> {
+public abstract class RowReaderBase<K, V, I extends MovieWritableBase> extends RecordReader<K, V> {
 
     protected CompressionCodecFactory compressionCodecs = null;
     protected long start;
@@ -28,10 +27,10 @@ public abstract class RowReaderBase<V extends MovieWritableBase> extends RecordR
     protected long end;
     protected LineReader in;
     protected int maxLineLength;
-    protected V value = null;
+    protected I internalValue = null;
     protected Text line = new Text();
     
-    protected abstract V initValue();
+    protected abstract I initValue();
 
     @Override
     public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException {
@@ -81,7 +80,7 @@ public abstract class RowReaderBase<V extends MovieWritableBase> extends RecordR
                 break;
             }
             
-            if (value.parseInputLine(line) == null) {
+            if (internalValue.parseInputLine(line) == null) {
                 break;
             }
 
@@ -92,7 +91,7 @@ public abstract class RowReaderBase<V extends MovieWritableBase> extends RecordR
 
         }
         if (newSize == 0) {
-            value = null;
+            internalValue = null;
             return false;
         } else {
             return true;
@@ -100,14 +99,10 @@ public abstract class RowReaderBase<V extends MovieWritableBase> extends RecordR
     }
 
     @Override
-    public NullWritable getCurrentKey() {
-        return NullWritable.get();
-    }
+    public abstract K getCurrentKey();
 
     @Override
-    public V getCurrentValue() {
-        return value;
-    }
+    public abstract V getCurrentValue();
 
     /**
      * Get the progress within the split

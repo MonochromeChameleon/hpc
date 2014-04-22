@@ -9,7 +9,7 @@ import org.apache.hadoop.io.Text;
  * This is the ouput writable for the second job, representing a pair of related movies and the number of tags associated
  * with each of them.
  * It is also the input writable for the third job, where we count the number of rows in order to determine the number of
- * shared tags for each pair.
+ * shared tags for each pair, and the output writable for that job, paired with a similarity FloatWritable.
  */
 public class MoviePair implements MovieWritableBase<MoviePair> {
 
@@ -24,7 +24,7 @@ public class MoviePair implements MovieWritableBase<MoviePair> {
         set(movie1, movie2);
     }
 
-    public void set(Movie movie1, Movie movie2) {
+    public final void set(Movie movie1, Movie movie2) {
         this.movie1 = movie1;
         this.movie2 = movie2;
     }
@@ -40,6 +40,10 @@ public class MoviePair implements MovieWritableBase<MoviePair> {
             return null;
         }
 
+        return parseInputArray(fields);
+    }
+    
+    public MoviePair parseInputArray(String... fields) {
         // parse movieId to an integer
         Integer parsedId1 = Integer.parseInt(fields[0]);
         Integer parsedTags1 = Integer.parseInt(fields[1]);
@@ -50,7 +54,7 @@ public class MoviePair implements MovieWritableBase<MoviePair> {
         Integer parsedTags2 = Integer.parseInt(fields[4]);
         String name2 = fields[5];
         movie2.set(parsedId2, parsedTags2, name2);
-
+        
         return this;
     }
     

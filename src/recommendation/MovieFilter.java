@@ -8,20 +8,23 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 
 /**
- * Identify movies whose names match the desired search term and emit the appropriate IDs. Or something...
+ * Identify movies whose names match the desired search term and emit that pair of movies and their similarity, keyed on
+ * the matching movie.
  */
 public class MovieFilter extends Mapper<NullWritable, MovieSimilarity, Movie, MovieSimilarity> {
 
     @Override
-    public void map(NullWritable key, MovieSimilarity moviePair, Context context) throws IOException, InterruptedException {
+    public void map(NullWritable key, MovieSimilarity similarity, Context context) throws IOException, InterruptedException {
         Configuration conf = context.getConfiguration();
         String targetMovie = conf.get("targetMovie");
         
-        if (moviePair.getMovie1().getName().toString().contains(targetMovie)) {
-            context.write(moviePair.getMovie1(), moviePair);
+        if (similarity.getMovie1().getName().toString().contains(targetMovie)) {
+            context.write(similarity.getMovie1(), similarity);
         }
-        if (moviePair.getMovie2().getName().toString().contains(targetMovie)) {
-            context.write(moviePair.getMovie2(), moviePair);
+        // It may be that both films in the pair have similar names and hence match the search term, so we should check
+        // and emit both if necessary
+        if (similarity.getMovie2().getName().toString().contains(targetMovie)) {
+            context.write(similarity.getMovie2(), similarity);
         }
     }
 }

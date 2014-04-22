@@ -5,7 +5,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-
+/**
+ * Main class to handle the construction of the movie similarity file that is then used for making recommendations.
+ */
 public class BuildDataset {
 
     public static boolean runJob(String input, String output, MovieJob jobType) throws Exception {

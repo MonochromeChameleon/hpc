@@ -1,22 +1,26 @@
 package customwritables;
 
-import java.io.*;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import org.apache.hadoop.io.FloatWritable;
+import org.apache.hadoop.io.Text;
 
-import org.apache.hadoop.io.*;
-
+/**
+ * This is the input writable for the recommendation job, where we filter the movie similarities file by movie name,
+ * and return a formatted list of relevant recommendations.
+ */
 public class MovieSimilarity implements MovieWritableBase<MovieSimilarity> {
 
-    private Movie movie1;
-    private Movie movie2;
+    private MoviePair pair;
     private FloatWritable similarity;
 
     public MovieSimilarity() {
-        set(new Movie(), new Movie(), new FloatWritable());
+        set(new MoviePair(), new FloatWritable());
     }
 
-    public final void set(Movie movie1, Movie movie2, FloatWritable similarity) {
-        this.movie1 = movie1;
-        this.movie2 = movie2;
+    public final void set(MoviePair pair, FloatWritable similarity) {
+        this.pair = pair;
         this.similarity = similarity;
     }
     
@@ -30,17 +34,8 @@ public class MovieSimilarity implements MovieWritableBase<MovieSimilarity> {
         if (fields == null || fields.length != 7) {
             return null;
         }
-
-        // parse movieId to an integer
-        Integer parsedId1 = Integer.parseInt(fields[0]);
-        Integer parsedTags1 = Integer.parseInt(fields[1]);
-        String name1 = fields[2];
-        movie1.set(parsedId1, parsedTags1, name1);
-
-        Integer parsedId2 = Integer.parseInt(fields[3]);
-        Integer parsedTags2 = Integer.parseInt(fields[4]);
-        String name2 = fields[5];
-        movie2.set(parsedId2, parsedTags2, name2);
+        
+        pair.parseInputArray(fields);
 
         Float parsedSimilarity = Float.parseFloat(fields[6]);
         similarity.set(parsedSimilarity);
@@ -48,58 +43,58 @@ public class MovieSimilarity implements MovieWritableBase<MovieSimilarity> {
         return this;
     }
 
-    public Movie getMovie1() {
-        return movie1;
-    }
-
-    public Movie getMovie2() {
-        return movie2;
+    public MoviePair getPair() {
+        return pair;
     }
 
     public FloatWritable getSimilarity() {
         return similarity;
     }
+    
+    // Utility accessors
+
+    public Movie getMovie1() {
+        return pair.getMovie1();
+    }
+    
+    public Movie getMovie2() {
+        return pair.getMovie2();
+    }
 
     @Override
     public void write(DataOutput out) throws IOException {
-        movie1.write(out);
-        movie2.write(out);
+        pair.write(out);
         similarity.write(out);
     }
 
     @Override
     public void readFields(DataInput in) throws IOException {
-        movie1.readFields(in);
-        movie2.readFields(in);
+        pair.readFields(in);
         similarity.readFields(in);
     }
 
     @Override
     public int hashCode() {
-        return (movie1.hashCode() * 163) + (movie2.hashCode()* 37) + similarity.hashCode();
+        return (pair.hashCode() * 37) + similarity.hashCode();
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof MovieSimilarity) {
             MovieSimilarity m = (MovieSimilarity) o;
-            return movie1.equals(m.getMovie1()) && movie2.equals(m.getMovie2()) && similarity.equals(m.getSimilarity());
+            return pair.equals(m.getPair()) && similarity.equals(m.getSimilarity());
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return movie1 + "\t" + movie2 + "\t" + similarity;
+        return pair + "\t" + similarity;
     }
 
     @Override
     public int compareTo(MovieSimilarity m) {
-        int cmp = movie1.compareTo(m.getMovie1());
-        if (cmp != 0) {
-            return cmp;
-        }
-        cmp = movie2.compareTo(m.getMovie2());
+        int cmp = pair.compareTo(m.getPair());
         if (cmp != 0) {
             return cmp;
         }
